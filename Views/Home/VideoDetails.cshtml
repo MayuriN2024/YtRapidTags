@@ -1,0 +1,98 @@
+@model Video
+@{
+    ViewData["Title"] = "YouTube Video Data Retriever";
+}
+
+<div class="container mx-auto px-4 max-w-2xl mt-12 pb-12">
+    <div class="text-center mb-8">
+        <h1 class="main-title text-4xl md:text-5xl font-extrabold mb-4">YouTube Video Data Retriever</h1>
+        <div class="gradient-header rounded-xl p-4 mt-6">
+            <p class="text-slate-600 dark:text-slate-400 text-lg mb-0">Enter a YouTube video URL or ID to fetch complete video information.</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6 mb-8">
+        <form action="/Home/FetchVideoDetails" method="post">
+            <label for="videoUrlOrId" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">YouTube Video URL or ID</label>
+            <input type="text" id="videoUrlOrId" name="videoUrlOrId"
+                   class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 mb-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800"
+                   required value="@ViewData["VideoUrlOrId"]">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg shadow-lg transition-colors">Fetch Video Data</button>
+        </form>
+
+        @if (ViewData["Error"] != null)
+        {
+            <div class="error rounded-lg p-4 mt-4">@ViewData["Error"]</div>
+        }
+    </div>
+
+    <!-- Result Section -->
+    @if (Model != null)
+    {
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <div class="thumb-box">
+                        <img src="@Model.ThumbnailUrl" alt="@Model.Title" class="w-full h-auto block">
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button type="button" @* Using button + JS since direct download attribute might have CORS issues *@
+                                onclick="downloadImage('@Model.ThumbnailUrl', 'thumbnail.jpg')"
+                                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg">
+                            <i class="bi bi-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-900 dark:text-slate-100 mb-2 text-lg">
+                        <i class="bi bi-film text-blue-500"></i> <span>@Model.Title</span>
+                    </h2>
+                    <div class="text-slate-600 dark:text-slate-400 mb-4 text-sm">
+                        <i class="bi bi-person-video"></i> <span>@Model.ChannelTitle</span> &bull;
+                        <i class="bi bi-calendar3"></i> <span>@Model.PublishedAt</span>
+                    </div>
+                    <div class="mb-6">
+                        <h3 class="font-bold mb-2 text-sm"><i class="bi bi-text-paragraph text-blue-500"></i> Description</h3>
+                        <div class="desc-box text-slate-600 dark:text-slate-400">@(Model.Description ?? "No description available.")</div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold mb-2 text-sm"><i class="bi bi-tags text-blue-500"></i> Tags</h3>
+                        @if (Model.Tags.Any())
+                        {
+                            <div class="flex flex-wrap">
+                                @foreach (var tag in Model.Tags)
+                                {
+                                    <span class="tag inline-flex items-center px-3 py-1 mr-2 mb-2 text-xs rounded-full">
+                                        <i class="bi bi-hash"></i> <span>@tag</span>
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-slate-500 italic text-sm">No tags available.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+  function downloadImage(url, filename) {
+      if (!url) return;
+      fetch(url)
+          .then(response => response.blob())
+          .then(blob => {
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = filename;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+          })
+          .catch(() => alert('Could not download image.'));
+  }
+</script>

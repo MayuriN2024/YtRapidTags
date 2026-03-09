@@ -1,0 +1,69 @@
+@{
+    ViewData["Title"] = "YouTube Thumbnail Generator";
+}
+
+<div class="container mx-auto px-4 max-w-2xl mt-12 pb-12">
+  <div class="text-center mb-8">
+    <h1 class="main-title text-4xl md:text-5xl font-extrabold mb-4">YouTube Thumbnail Generator</h1>
+    <div class="gradient-header rounded-xl p-4 mt-6">
+      <p class="text-slate-600 dark:text-slate-400 text-lg mb-0">
+        Enter a YouTube video URL or ID to get high resolution thumbnail (1280x720).
+      </p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6 mb-8">
+    <form action="/get-thumbnail" method="post">
+      <label for="videoUrlOrId" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+        YouTube Video URL or ID
+      </label>
+      <input type="text" id="videoUrlOrId" name="videoUrlOrId"
+             class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-colors duration-200 mb-4"
+             required>
+      <button type="submit"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg shadow-lg transition-colors duration-200">
+        Get Thumbnail
+      </button>
+    </form>
+
+    @if (ViewData["Error"] != null)
+    {
+        <div class="error rounded-lg p-4 mt-4">@ViewData["Error"]</div>
+    }
+  </div>
+
+  @if (ViewData["ThumbnailUrl"] != null)
+  {
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6 mb-8">
+      <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">High Quality Thumbnail (1280x720)</h2>
+      <div class="flex justify-end mb-4">
+        <button type="button"
+                onclick="downloadImage('@ViewData["ThumbnailUrl"]', 'youtube-thumbnail-@(ViewData["VideoId"])-hq.jpg')"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+          Download Thumbnail
+        </button>
+      </div>
+      <div class="thumb-box p-4">
+        <img src="@ViewData["ThumbnailUrl"]" alt="YouTube thumbnail high quality" class="w-full h-auto"
+             onerror="this.onerror=null;this.src='https://via.placeholder.com/1280x720?text=High+Quality+Thumbnail+Not+Available';">
+      </div>
+    </div>
+  }
+</div>
+
+<script>
+  function downloadImage(url, filename) {
+      if (!url) return;
+      fetch(url)
+          .then(response => response.blob())
+          .then(blob => {
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = filename;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+          })
+          .catch(() => alert('Failed to download thumbnail.'));
+  }
+</script>

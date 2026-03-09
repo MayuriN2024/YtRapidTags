@@ -1,0 +1,122 @@
+@model SearchVideo
+@{
+    ViewData["Title"] = "YouTube SEO Tag Generator";
+}
+
+<div class="container mx-auto px-4 max-w-2xl mt-12 pb-12">
+  <div class="text-center mb-8">
+    <h1 class="main-title text-4xl md:text-5xl font-extrabold mb-4">YouTube SEO Tag Generator</h1>
+    <div class="gradient-header rounded-xl p-4 mt-6">
+      <p class="text-slate-600 dark:text-slate-400 text-lg mb-0">
+        Enter a YouTube video title to find and extract SEO tags from similar videos to optimize your content.
+      </p>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6 mb-8">
+    <form action="/youtube/search" method="post">
+      <div class="mb-6 text-start">
+        <label for="videoTitle" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          YouTube Video Title
+        </label>
+        <input type="text" id="videoTitle" name="videoTitle"
+               class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-colors duration-200"
+               placeholder="Enter the title of your YouTube video" required>
+      </div>
+      <button type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg shadow-lg transition-colors duration-200 flex items-center justify-center gap-2">
+        <span class="text-xl">&#43;</span> Generate SEO Tags
+      </button>
+    </form>
+  </div>
+
+  @if (ViewData["Error"] != null)
+  {
+      <div class="error rounded-lg p-4 mb-4">@ViewData["Error"]</div>
+  }
+
+  @if (Model?.PrimaryVideo != null)
+  {
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-slate-100">
+          <i class="bi bi-star-fill text-blue-500"></i>
+          <span>Primary Video Tags</span>
+        </div>
+        <button type="button"
+                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
+                onclick="copyTags('@Model.PrimaryVideo.TagsAsString')">
+          <i class="bi bi-clipboard2-check"></i> Copy Tags
+        </button>
+      </div>
+      <div class="text-slate-900 dark:text-slate-100 font-semibold mb-2">@Model.PrimaryVideo.Title</div>
+      <div class="text-slate-600 dark:text-slate-400 mb-4 text-sm">@Model.PrimaryVideo.ChannelTitle</div>
+      <div>
+          @foreach (var tag in Model.PrimaryVideo.Tags)
+          {
+              <span class="tag inline-flex items-center gap-2 rounded-full px-3 py-2 mr-2 mb-2 text-sm">
+                  <i class="bi bi-hash"></i><span>@tag</span>
+              </span>
+          }
+      </div>
+    </div>
+  }
+
+  @if (Model?.RelatedVideos?.Any() == true)
+  {
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-slate-100">
+          <i class="bi bi-collection text-blue-500"></i>
+          <span>Related Videos Tags</span>
+        </div>
+        <button type="button"
+                class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2"
+                onclick="copyTags('@Model.AllTagsAsString')">
+          <i class="bi bi-clipboard2"></i> Copy All
+        </button>
+      </div>
+      <div class="mt-4">
+        @foreach (var video in Model.RelatedVideos)
+        {
+          <div class="mb-6">
+            <div class="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+              <i class="bi bi-play-btn mr-2 text-blue-500"></i>
+              <span>@video.Title</span>
+            </div>
+            <div>
+              @if (!video.Tags.Any())
+              {
+                  <span class="text-slate-500 dark:text-slate-400 italic">No tags found</span>
+              }
+              else
+              {
+                  @foreach (var tag in video.Tags)
+                  {
+                      <span class="tag inline-flex items-center gap-2 rounded-full px-3 py-2 mr-2 mb-2 text-sm">
+                          <i class="bi bi-tag"></i><span>@tag</span>
+                      </span>
+                  }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <div id="copySuccess" class="success hidden rounded-lg p-4 mb-4">Tags copied to clipboard!</div>
+</div>
+
+<script>
+  function copyTags(tags) {
+      if (!tags) return;
+      navigator.clipboard.writeText(tags)
+          .then(() => {
+              const success = document.getElementById('copySuccess');
+              success.classList.remove('hidden');
+              setTimeout(() => success.classList.add('hidden'), 2000);
+          })
+          .catch(() => alert('Could not copy tags.'));
+  }
+</script>
